@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Language AI</title>
+    <style>
+        body { text-align: center; font-family: sans-serif; background: #121212; color: white; }
+        #video-container { position: relative; display: inline-block; }
+        canvas { display: none; }
+        #result { font-size: 3rem; color: #00ff88; margin-top: 20px; }
+        #camera-select { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Real-Time ASL Interpreter</h1>
+    <select id="camera-select"></select>
+    <div id="video-container">
+        <video id="webcam" width="448" height="448" autoplay></video>
+    </div>
+    <div id="result">Waiting...</div>
+    <canvas id="canvas" width="224" height="224"></canvas>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const result = document.getElementById('result');
+        const cameraSelect = document.getElementById('camera-select');
+        let currentStream = null;
+
+        // List cameras
+        async function getCameras() {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            cameraSelect.innerHTML = '';
+            videoDevices.forEach((device, i) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Camera ${i + 1}`;
+                cameraSelect.appendChild(option);
+            });
+        }
+
+        // Start selected camera
+        async function startCamera(deviceId) {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            const constraints = {
+                video: { deviceId: deviceId ? { exact: deviceId } : undefined }
+            };
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            currentStream = stream;
+        }
+
+        cameraSelect.addEventListener('change', () => {
+            startCamera(cameraSelect.value);
+        });
+
+        // Initialize
+        (async () => {
+            await getCameras();
+            if (cameraSelect.options.length > 0) {
+                await startCamera(cameraSelect.value);
+            }
+        })();
+
+        async function sendFrame() {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, 224, 224);
+            const imageData = canvas.toDataURL('image/jpeg', 0.5);
+
+            const response = await fetch('/predict/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            });
+
+            const data = await response.json();
+            result.innerText = `Sign: ${data.label}`;
+        }
+
+        setInterval(sendFrame, 400);
+    </script>
+</body>
+</html>

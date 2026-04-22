@@ -8,7 +8,7 @@ from .models_ai import model_asl, device, val_transforms
 
 # Load model globally to avoid reloading on every request
 asl_model = model_asl
-asl_model.load_state_dict(torch.load("/home/faiz/Desktop/imageNet/backend/asl_cnn/finetune_modelv2.pth", map_location=torch.device(device)))
+asl_model.load_state_dict(torch.load("/home/faimali/Desktop/imageNet/backend/asl_cnn/finetune_modelv2.pth", map_location=torch.device(device)))
 asl_model.eval()
 
 SIGN_CLASSES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'del', 'nothing', 'space']

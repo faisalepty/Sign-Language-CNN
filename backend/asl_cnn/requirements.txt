@@ -12,6 +12,6 @@ pillow==12.1.1
 setuptools==70.2.0
 sqlparse==0.5.5
 sympy==1.14.0
-torch==2.11.0
-torchvision==0.26.0
+torch==2.10.0
+torchvision==0.15.2
 typing_extensions==4.15.0
